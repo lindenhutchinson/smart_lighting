@@ -21,8 +21,8 @@ const client = mqtt.connect(options);
 
 client.subscribe('/lighting/driver/controllerUpdated');
 client.on('message', async (topic, payload) => {
-    console.log(topic)
-    console.log(payload.toString());
+    // console.log(topic)
+    // console.log(payload.toString());
     axios.post(`${MAIN_SERVER_URL}/ctrl/updated`, payload.toString(), {
         headers: {
             'Content-Type': 'application/json'
@@ -57,7 +57,7 @@ app.post('/mqtt/update', (req, res) => {
 
 app.post('/mqtt/load', (req, res) => {
     const json_string = JSON.stringify(req.body.data);
-    console.log('load controllers', json_string)
+    console.log(`load ${req.body.data.length} controllers`);
     client.publish('/lighting/driver/loadControllers', json_string)
     res.sendStatus(200);
 })

@@ -15,7 +15,6 @@ LOAD_CONTROLLERS = 'loadControllers'
 # publishes to these topics
 CONTROLLER_UPDATED = 'controllerUpdated'
 
-
 def connect_mqtt(username, password, broker, port):
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
@@ -31,17 +30,15 @@ def connect_mqtt(username, password, broker, port):
 
 
 class Driver:
-    def __init__(self, client, root_topic=ROOT_TOPIC):
+    def __init__(self, client):
         self.client = client
-        self.root_topic = root_topic
         self.controllers = {}
         self.subscribe_to_topics()
         
-
     def subscribe_to_topics(self):
-        self.client.subscribe(f"{self.root_topic}/{UPDATE_CONTROLLER}")
-        self.client.subscribe(f"{self.root_topic}/{CREATE_CONTROLLER}")
-        self.client.subscribe(f"{self.root_topic}/{LOAD_CONTROLLERS}")
+        self.client.subscribe(f"{ROOT_TOPIC}/{UPDATE_CONTROLLER}")
+        self.client.subscribe(f"{ROOT_TOPIC}/{CREATE_CONTROLLER}")
+        self.client.subscribe(f"{ROOT_TOPIC}/{LOAD_CONTROLLERS}")
 
         self.client.on_message = self.on_message
 
@@ -82,6 +79,7 @@ class Driver:
                 update = ctrl.get_update()
                 if(update):
                     self.publish_update(update)
+                    print(ctrl)
                 time.sleep(1)
 
             time.sleep(10)
@@ -89,7 +87,7 @@ class Driver:
             
 
     def publish_update(self, update):
-        topic = f"{self.root_topic}/{CONTROLLER_UPDATED}"
+        topic = f"{ROOT_TOPIC}/{CONTROLLER_UPDATED}"
         msg = json.dumps(update)
         result = self.client.publish(topic, msg)
     

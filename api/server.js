@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express');
 const axios = require('axios');
 const bodyParser = require('body-parser');
@@ -10,7 +11,7 @@ app.use(cors());
 const MIDDLEWARE_API = 'http://localhost:6000'
 const mongoose = require('mongoose');
 const Controller = require('./models/controller');
-const MONGO_URL = `mongodb+srv://admin:${Process.env.MONGO_PASSWORD}@cluster0.vmekeyd.mongodb.net/?retryWrites=true&w=majority`
+const MONGO_URL = `mongodb+srv://admin:${process.env.MONGO_PASSWORD}@cluster0.vmekeyd.mongodb.net/?retryWrites=true&w=majority`
 
 mongoose.connect(MONGO_URL, {
     useNewUrlParser: true,
@@ -27,7 +28,6 @@ app.get('/', async (req, res) => {
     // console.log(req.body);
     const controllers = await Controller.find().sort({ updatedAt: -1 });
     const controller_ids = controllers.map((ctrl) => ctrl._id);
-    console.log(controller_ids);
 
     axios.post(`${MIDDLEWARE_API}/mqtt/load`, { data: controller_ids}, {
         headers: {
@@ -64,10 +64,11 @@ app.post('/ctrl/create', async (req, res) => {
         headers: {
             'Content-Type': 'application/json'
         }
-    }).then((res) => {
-        res.sendStatus(201);
-    });
-})
+    })
+
+    return res.status(201).send(ctrl);
+});
+
 app.post('/ctrl/update', async (req, res) => {
     const ctrl = await Controller.findById(req.body.id);
     if (ctrl) {
@@ -76,14 +77,14 @@ app.post('/ctrl/update', async (req, res) => {
             headers: {
                 'Content-Type': 'application/json'
             }
-        }).then((res) => {
-            res.sendStatus(201);
         });
+
+        return res.status(201).send(ctrl);
     }
+    res.sendStatus(404);
 })
 
 app.post('/ctrl/updated', async (req, res) => {
-    // console.log(req.body);
     const ctrl = {
         _id: req.body.id,
         brightness: req.body.brightness,
@@ -93,7 +94,7 @@ app.post('/ctrl/updated', async (req, res) => {
     Controller.findOneAndUpdate({ _id: req.body.id }, ctrl, { upsert: true }, (err, doc) => {
         console.log('error', err)
         console.log('doc', doc)
-    })
+    });
 
     res.sendStatus(201);
 });
